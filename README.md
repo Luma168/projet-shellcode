@@ -9,7 +9,7 @@ uwu_shellcode_encoder/
 ├── encoder/
 │   └── uwu_encoder.py      # Encodeur Python (hex → UwU)
 ├── decoder/
-│   └── uwu_decoder.asm     # Décodeur ASM (UwU → hex)
+│   └── uwu_decoder.s       # Décodeur ASM x86_64 GAS (UwU → hex)
 ├── keywords.json           # Table de correspondance
 └── README.md
 ```
@@ -35,21 +35,27 @@ Input:  \x48\x31\xc0
 Output: ^w^-SwS >w<-OwO ZwZ-UwU
 ```
 
-## Décodeur (ASM x86_64)
+## Décodeur (ASM x86_64 GAS)
 
 Convertit du format UwU en shellcode hex.
 
 ### Utilisation
 
-1. **Modifier la chaîne à décoder** dans `decoder/uwu_decoder.asm` :
+1. **Modifier la chaîne à décoder** dans `decoder/uwu_decoder.s` :
    ```asm
-   encoded_data: db "^w^-SwS >w<-OwO ZwZ-UwU", 0
+   encoded_data:
+       .asciz "^w^-SwS >w<-OwO ZwZ-UwU"
    ```
 
 2. **Compiler** :
    ```bash
-   nasm -f elf64 decoder/uwu_decoder.asm -o decoder/uwu_decoder.o
+   as --64 decoder/uwu_decoder.s -o decoder/uwu_decoder.o
    ld decoder/uwu_decoder.o -o decoder/uwu_decoder
+   ```
+   
+   Ou avec gcc :
+   ```bash
+   gcc -nostdlib -no-pie decoder/uwu_decoder.s -o decoder/uwu_decoder
    ```
 
 3. **Exécuter** :
