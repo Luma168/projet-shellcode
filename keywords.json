@@ -1,0 +1,22 @@
+{
+    "nibble_to_keyword": {
+        "0": "UwU",
+        "1": "OwO",
+        "2": "TwT",
+        "3": ">w<",
+        "4": "^w^",
+        "5": "QwQ",
+        "6": "PwP",
+        "7": "RwR",
+        "8": "SwS",
+        "9": "VwV",
+        "a": "XwX",
+        "b": "YwY",
+        "c": "ZwZ",
+        "d": "NwN",
+        "e": "MwM",
+        "f": "LwL"
+    },
+    "separator": "-",
+    "byte_separator": " "
+}
