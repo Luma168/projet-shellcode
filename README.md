@@ -6,8 +6,9 @@ Encodeur Python et décodeur ASM pour obfusquer du shellcode avec des mots-clés
 
 ```
 uwu_shellcode_encoder/
+├── cli.py                  # CLI principale
 ├── encoder/
-│   └── uwu_encoder.py      # Encodeur Python (hex → UwU)
+│   └── uwu_encoder.py      # Module encodeur
 ├── decoder/
 │   ├── uwu_decoder.s       # Décodeur v1 (recherche ascendante)
 │   ├── uwu_decoder_v2.s    # Décodeur v2 (recherche descendante)
@@ -16,59 +17,46 @@ uwu_shellcode_encoder/
 └── README.md
 ```
 
-## Encodeur (Python)
+## CLI
 
-Convertit du shellcode hex en format UwU.
+### Encoder (hex → UwU)
 
 ```bash
 # Depuis argument
-python3 encoder/uwu_encoder.py '\x48\x31\xc0'
+python3 cli.py encode -s '\x48\x31\xc0'
 
 # Depuis fichier
-python3 encoder/uwu_encoder.py shellcode.txt
+python3 cli.py encode -f shellcode.txt
 
 # Vers fichier
-python3 encoder/uwu_encoder.py '\x48\x31\xc0' output.uwu
+python3 cli.py encode -s '\x48\x31\xc0' -o encoded.uwu
+```
+
+### Décoder (UwU → hex)
+
+Le décodage compile et exécute automatiquement le décodeur ASM.
+
+```bash
+# Depuis argument
+python3 cli.py decode -e '^w^-SwS >w<-OwO ZwZ-UwU'
+
+# Depuis fichier
+python3 cli.py decode -f encoded.uwu
+
+# Choisir la version du décodeur (1, 2 ou 3)
+python3 cli.py decode -e '^w^-SwS >w<-OwO' -v 2
+
+# Vers fichier
+python3 cli.py decode -f encoded.uwu -o shellcode.txt
 ```
 
 **Exemple:**
 ```
-Input:  \x48\x31\xc0
-Output: ^w^-SwS >w<-OwO ZwZ-UwU
-```
+$ python3 cli.py encode -s '\x48\x31\xc0'
+^w^-SwS >w<-OwO ZwZ-UwU
 
-## Décodeur (ASM x86_64 GAS)
-
-Convertit du format UwU en shellcode hex.
-
-### Utilisation
-
-1. **Modifier la chaîne à décoder** dans `decoder/uwu_decoder.s` :
-   ```asm
-   encoded_data:
-       .asciz "^w^-SwS >w<-OwO ZwZ-UwU"
-   ```
-
-2. **Compiler** :
-   ```bash
-   as --64 decoder/uwu_decoder.s -o decoder/uwu_decoder.o
-   ld decoder/uwu_decoder.o -o decoder/uwu_decoder
-   ```
-   
-   Ou avec gcc :
-   ```bash
-   gcc -nostdlib -no-pie decoder/uwu_decoder.s -o decoder/uwu_decoder
-   ```
-
-3. **Exécuter** :
-   ```bash
-   ./decoder/uwu_decoder
-   ```
-
-**Exemple:**
-```
-Input:  ^w^-SwS >w<-OwO ZwZ-UwU
-Output: \x48\x31\xc0
+$ python3 cli.py decode -e '^w^-SwS >w<-OwO ZwZ-UwU'
+\x48\x31\xc0
 ```
 
 ## Variantes du décodeur
