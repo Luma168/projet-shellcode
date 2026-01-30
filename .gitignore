@@ -34,8 +34,6 @@ env/
 # Compiled binaries
 *.o
 *.out
-decoder
-uwu_decoder
 
 # Generated stubs
 generated_*.c
