@@ -10,7 +10,8 @@ uwu_shellcode_encoder/
 │   └── uwu_encoder.py      # Encodeur Python (hex → UwU)
 ├── decoder/
 │   ├── uwu_decoder.s       # Décodeur v1 (recherche ascendante)
-│   └── uwu_decoder_v2.s    # Décodeur v2 (recherche descendante)
+│   ├── uwu_decoder_v2.s    # Décodeur v2 (recherche descendante)
+│   └── uwu_decoder_v3.s    # Décodeur v3 (signature 32-bit)
 ├── keywords.json           # Table de correspondance
 └── README.md
 ```
@@ -88,6 +89,13 @@ Deux versions du décodeur sont disponibles pour rendre l'analyse plus difficile
 - **Test espace** : soustraction `sub al, 0x20` puis test zero
 - **Écriture préfixe** : via `lea` et indirection mémoire
 
+### Version 3 (`uwu_decoder_v3.s`)
+
+- **Signature 32-bit** : combine les 3 caractères en un seul mot (`char0 | char1<<8 | char2<<16`)
+- **Comparaison unique** : compare la signature en une seule instruction `cmp` au lieu de 3
+- **Table pré-calculée** : utilise une table de signatures `.long` au lieu de `.ascii`
+- **Registres** : `r8` (source), `r9` (destination), `r10` (table), `r11` (accumulateur)
+
 ### Compilation
 
 ```bash
@@ -98,6 +106,10 @@ ld decoder/uwu_decoder.o -o decoder/uwu_decoder
 # Version 2
 as --64 decoder/uwu_decoder_v2.s -o decoder/uwu_decoder_v2.o
 ld decoder/uwu_decoder_v2.o -o decoder/uwu_decoder_v2
+
+# Version 3
+as --64 decoder/uwu_decoder_v3.s -o decoder/uwu_decoder_v3.o
+ld decoder/uwu_decoder_v3.o -o decoder/uwu_decoder_v3
 ```
 
 ## Table de correspondance
