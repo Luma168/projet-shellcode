@@ -3,15 +3,17 @@
     .section .text
     .global decoder_entry
 decoder_entry:
-    xchg r13, r13
-    xchg r13, r13
+    inc r14
+    dec r14
+    push r14
+    pop r14
 
-    lea r15, [rip + encoded_data]
-    lea r14, [rip + outbuf]
+    lea r13, [rip + encoded_data]
+    lea r15, [rip + outbuf]
     lea r11, [rip + keywords]
 
 main_loop:
-    movzx eax, byte ptr [r15]
+    movzx eax, byte ptr [r13]
     test al, al
     jz finish
 
@@ -24,20 +26,20 @@ main_loop:
     shl bl, 4
 
     # skip '-'
-    inc r15
+    inc r13
 
     # decode low nibble
     call decode_nibble
     or bl, al
 
     # store byte
-    mov byte ptr [r14], bl
-    inc r14
+    mov byte ptr [r15], bl
+    inc r15
 
     jmp main_loop
 
 skip_sep:
-    inc r15
+    inc r13
     jmp main_loop
 
 finish:
@@ -51,9 +53,9 @@ decode_nibble:
     push rdx
     push rsi
 
-    movzx eax, byte ptr [r15]
-    movzx ecx, byte ptr [r15 + 1]
-    movzx edx, byte ptr [r15 + 2]
+    movzx eax, byte ptr [r13]
+    movzx ecx, byte ptr [r13 + 1]
+    movzx edx, byte ptr [r13 + 2]
 
     xor rsi, rsi
 .search_loop:
@@ -77,7 +79,7 @@ decode_nibble:
 .nf:
     xor eax, eax
 .done:
-    add r15, 3
+    add r13, 3
     pop rsi
     pop rdx
     pop rcx
