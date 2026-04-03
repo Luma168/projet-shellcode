@@ -113,53 +113,57 @@ outbuf:
 
 
 def build_asm(encoded, out_path, dryrun=False):
-    regs = choose_regs()
-    r_in, r_out, r_kw, r_tmp = regs
+    decoder_folder = Path("decoder")
+    #s_files = list(decoder_folder.glob("*.s"))
+    s_files = [decoder_folder / "decoder_2.s"]  # For now, use the single template file
+    if not s_files:
+        raise FileNotFoundError("No .s files found in decoder folder!")
 
-    # small prologue with some junk to help metamorphism
+    asm_path = random.choice(s_files)
+    asm = asm_path.read_text()
+    # -------------------------
+    # Generate polymorphic junk
+    # -------------------------
+    regs = choose_regs()
+    r_tmp = regs[0]
+
     junk = []
-    # insert a few random harmless instruction sequences
-    for _ in range(random.randint(1, 3)):
+    for _ in range(random.randint(1, 4)):
         seq = random.choice([
             f"push {r_tmp}\n    pop {r_tmp}",
             f"xor {r_tmp}, {r_tmp}",
-            f"xchg {r_tmp}, {r_tmp}",
             f"inc {r_tmp}\n    dec {r_tmp}",
         ])
         junk.append(seq)
 
     prologue = "\n    ".join(junk)
 
-    asm = ASM_TEMPLATE.format(
-        prologue=prologue,
-        r_in=r_in,
-        r_out=r_out,
-        r_kw=r_kw,
-        encoded=encoded.replace('"', "'"),
+    # -------------------------
+    # Inject into template
+    # -------------------------
+    asm = asm.replace(
+        "# --- PROLOGUE_INSERT ---",
+        prologue
     )
 
-    asm_path = Path("decoder_gen.s")
-    asm_path.write_text(asm)
+    asm = asm.replace(
+        "__ENCODED_DATA__",
+        encoded.replace('"', "'")
+    )
+
+    # write to temp file (IMPORTANT: don't overwrite original!)
+    out_asm = Path("decoder_gen_temp.s")
+    out_asm.write_text(asm)
 
     if dryrun:
         print(asm)
-        return asm_path
+        return out_asm
 
-    missing = [tool for tool in ("gcc", "objcopy") if shutil.which(tool) is None]
-    if missing:
-        missing_tools = ", ".join(missing)
-        raise RuntimeError(
-            "Missing toolchain: "
-            f"{missing_tools}. Install GCC/binutils (MSYS2/MinGW or WSL), "
-            "or use --dryrun to generate ASM only."
-        )
-
-    # Assemble and extract .text
     obj = Path("decoder_gen.o")
     bin_out = Path(out_path)
 
     cmds = [
-        ["gcc", "-nostdlib", "-no-pie", "-c", str(asm_path), "-o", str(obj)],
+        ["gcc", "-nostdlib", "-no-pie", "-c", str(out_asm), "-o", str(obj)],
         ["objcopy", "--only-section=.text", "-O", "binary", str(obj), str(bin_out)],
     ]
 
