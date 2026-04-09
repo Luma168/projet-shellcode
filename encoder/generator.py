@@ -1,27 +1,10 @@
-#!/usr/bin/env python3
-"""
-Générateur de decoder métamorphique UwU -> shellcode binaire
+"""ASM stub generation utilities."""
 
-Il prend en entrée un shellcode hex (ex: "\\x48\\x31\\xc0") ou une chaîne UwU
-et génère un stub assembleur qui décode la chaîne et saute vers le payload décodé.
-
-Usage:
-  python3 encoder/generate_decoder_shellcode.py --hex "\\x48\\x31\\xc0" -o out.bin
-  python3 encoder/generate_decoder_shellcode.py --uwu "UwU-..." -o out.bin
-
-Le script produit un fichier binaire contenant la section .text de l'objet assemblé
-; ce binaire est un shellcode prêt à être copié en mémoire exécutable.
-"""
-
-import argparse
-import os
 import random
 import shlex
+import shutil
 import subprocess
-import sys
 from pathlib import Path
-
-HERE = Path(__file__).resolve().parent.parent
 
 
 def choose_regs():
@@ -162,6 +145,15 @@ def build_asm(encoded, out_path, dryrun=False):
         print(asm)
         return asm_path
 
+    missing = [tool for tool in ("gcc", "objcopy") if shutil.which(tool) is None]
+    if missing:
+        missing_tools = ", ".join(missing)
+        raise RuntimeError(
+            "Toolchain manquante: "
+            f"{missing_tools}. Installe GCC/binutils (MSYS2/MinGW ou WSL), "
+            "ou utilise --dryrun pour générer seulement l'ASM."
+        )
+
     # Assemble and extract .text
     obj = Path("decoder_gen.o")
     bin_out = Path(out_path)
@@ -177,33 +169,3 @@ def build_asm(encoded, out_path, dryrun=False):
 
     print(f"Wrote shellcode binary to: {bin_out}")
     return bin_out
-
-
-def main():
-    p = argparse.ArgumentParser()
-    g = p.add_mutually_exclusive_group(required=True)
-    g.add_argument("--hex", help="Shellcode hex string, ex: '\\x48\\x31\\xc0'")
-    g.add_argument("--uwu", help="Encoded UwU string to decode")
-    p.add_argument("-o", "--out", default="out.bin", help="Output binary file")
-    p.add_argument("--dryrun", action="store_true", help="Print generated ASM and exit")
-    args = p.parse_args()
-
-    if args.hex:
-        # reuse encoder to convert hex -> uwu if available
-        sys.path.insert(0, str(HERE / "encoder"))
-        try:
-            from uwu_encoder import encode
-        except Exception:
-            # fallback: pass hex as raw bytes string via \x..
-            print("Warning: couldn't import encoder, using raw hex as escaped string", file=sys.stderr)
-            encoded = args.hex
-        else:
-            encoded = encode(args.hex)
-    else:
-        encoded = args.uwu
-
-    build_asm(encoded, args.out, dryrun=args.dryrun)
-
-
-if __name__ == '__main__':
-    main()

@@ -3,17 +3,15 @@
     .section .text
     .global decoder_entry
 decoder_entry:
-    inc r14
-    dec r14
-    push r14
-    pop r14
+    push r10
+    pop r10
 
-    lea r13, [rip + encoded_data]
-    lea r15, [rip + outbuf]
-    lea r11, [rip + keywords]
+    lea r11, [rip + encoded_data]
+    lea r13, [rip + outbuf]
+    lea r14, [rip + keywords]
 
 main_loop:
-    movzx eax, byte ptr [r13]
+    movzx eax, byte ptr [r11]
     test al, al
     jz finish
 
@@ -26,20 +24,20 @@ main_loop:
     shl bl, 4
 
     # skip '-'
-    inc r13
+    inc r11
 
     # decode low nibble
     call decode_nibble
     or bl, al
 
     # store byte
-    mov byte ptr [r15], bl
-    inc r15
+    mov byte ptr [r13], bl
+    inc r13
 
     jmp main_loop
 
 skip_sep:
-    inc r13
+    inc r11
     jmp main_loop
 
 finish:
@@ -53,9 +51,9 @@ decode_nibble:
     push rdx
     push rsi
 
-    movzx eax, byte ptr [r13]
-    movzx ecx, byte ptr [r13 + 1]
-    movzx edx, byte ptr [r13 + 2]
+    movzx eax, byte ptr [r11]
+    movzx ecx, byte ptr [r11 + 1]
+    movzx edx, byte ptr [r11 + 2]
 
     xor rsi, rsi
 .search_loop:
@@ -64,11 +62,11 @@ decode_nibble:
 
     lea rdi, [rsi + rsi*2]
     # compare 3 chars
-    cmp al, byte ptr [r11 + rdi]
+    cmp al, byte ptr [r14 + rdi]
     jne .next
-    cmp cl, byte ptr [r11 + rdi + 1]
+    cmp cl, byte ptr [r14 + rdi + 1]
     jne .next
-    cmp dl, byte ptr [r11 + rdi + 2]
+    cmp dl, byte ptr [r14 + rdi + 2]
     jne .next
 
     mov eax, esi
@@ -79,7 +77,7 @@ decode_nibble:
 .nf:
     xor eax, eax
 .done:
-    add r13, 3
+    add r11, 3
     pop rsi
     pop rdx
     pop rcx
