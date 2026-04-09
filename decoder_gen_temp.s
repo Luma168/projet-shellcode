@@ -1,7 +1,9 @@
 .intel_syntax noprefix
 .section .text
 .global decoder_entry
-xchg r13, r13
+xor r10, r10
+    inc r10
+    dec r10
 decoder_entry:
 
     cld                  # ensure DF=0 for safe forward writes
