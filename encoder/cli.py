@@ -9,21 +9,21 @@ from encoder.commands import encode, generate
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="uwu-cli",
-        description="Outils CLI pour encoder un shellcode et générer un décodeur UwU.",
+        description="CLI tools to encode shellcode and generate an UwU decoder.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_encode = sub.add_parser(
         "encode",
-        help="Encode une chaîne hex en UwU",
-        description="Encode un shellcode hexadécimal (ou un fichier texte) en format UwU.",
+        help="Encode a hex string to UwU",
+        description="Encode a hexadecimal shellcode string (or a text file) to UwU format.",
     )
     encode.configure_parser(p_encode)
 
     p_generate = sub.add_parser(
         "generate",
-        help="Génère un shellcode binaire décodeur",
-        description="Génère un stub ASM qui décode du UwU puis saute vers le payload.",
+        help="Generate decoder shellcode binary",
+        description="Generate an ASM stub that decodes UwU and jumps to the payload.",
     )
     generate.configure_parser(p_generate)
 
@@ -36,7 +36,7 @@ def main(argv=None):
     try:
         return args.func(args)
     except (ValueError, KeyError, RuntimeError) as exc:
-        print(f"[!] Erreur: {exc}", file=sys.stderr)
+        print(f"[!] Error: {exc}", file=sys.stderr)
         return 2
 
 

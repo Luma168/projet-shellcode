@@ -11,10 +11,10 @@ except ImportError:
 def configure_parser(parser):
     parser.add_argument(
         "input",
-        help="Chaîne hex (\\x48\\x31...) ou chemin vers fichier texte",
+        help="Hex string (\\x48\\x31...) or path to a text file",
     )
-    parser.add_argument("-o", "--output", help="Fichier de sortie (sinon stdout)")
-    parser.add_argument("-k", "--keywords", help="Chemin vers keywords.json personnalisé")
+    parser.add_argument("-o", "--output", help="Output file (defaults to stdout)")
+    parser.add_argument("-k", "--keywords", help="Path to a custom keywords.json file")
     parser.set_defaults(func=run)
 
 
@@ -25,7 +25,7 @@ def run(args):
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
             f.write(encoded)
-        print(f"[+] Écrit dans {args.output}", file=sys.stderr)
+        print(f"[+] Wrote to {args.output}", file=sys.stderr)
         return 0
 
     print(encoded)

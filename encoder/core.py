@@ -20,7 +20,7 @@ def normalize_hex_string(hex_string):
     """Normalize hex shellcode string by removing common prefixes/spaces."""
     hex_clean = hex_string.replace("\\x", "").replace("0x", "").replace(" ", "").strip()
     if len(hex_clean) % 2 != 0:
-        raise ValueError("La chaîne hex doit avoir une longueur paire")
+        raise ValueError("Hex string length must be even")
     return hex_clean
 
 

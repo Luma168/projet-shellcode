@@ -149,9 +149,9 @@ def build_asm(encoded, out_path, dryrun=False):
     if missing:
         missing_tools = ", ".join(missing)
         raise RuntimeError(
-            "Toolchain manquante: "
-            f"{missing_tools}. Installe GCC/binutils (MSYS2/MinGW ou WSL), "
-            "ou utilise --dryrun pour générer seulement l'ASM."
+            "Missing toolchain: "
+            f"{missing_tools}. Install GCC/binutils (MSYS2/MinGW or WSL), "
+            "or use --dryrun to generate ASM only."
         )
 
     # Assemble and extract .text
