@@ -37,6 +37,8 @@ env/
 
 # Generated stubs
 generated_*.c
+decoder_gen.s
+decoder_gen.o
 
 # OS files
 .DS_Store
@@ -45,3 +47,4 @@ Thumbs.db
 # Test outputs
 /tmp/
 *.tmp
+out.bin

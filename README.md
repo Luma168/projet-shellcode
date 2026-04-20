@@ -1,72 +1,57 @@
 # UwU Shellcode Encoder/Decoder
 
-Encodeur Python et décodeur ASM pour obfusquer du shellcode avec des mots-clés kawaii.
+CLI Python modulaire + décodeur ASM pour obfusquer du shellcode avec des mots-clés kawaii.
+
+## CLI officielle
+
+Le point d'entrée principal est `uwu_cli.py`.
+
+```bash
+# Aide globale
+python uwu_cli.py -h
+
+# Aide détaillée par commande
+python uwu_cli.py encode -h
+python uwu_cli.py generate -h
+
+# Encodage hex -> UwU
+python uwu_cli.py encode 4831c0
+python uwu_cli.py encode '\x48\x31\xc0' -o output.uwu
+
+# Génération d'un binaire décodeur
+python uwu_cli.py generate --hex 4831c0 -o out.bin
+python uwu_cli.py generate --uwu "^w^-SwS >w<-OwO ZwZ-UwU" --dryrun
+```
 
 ## Structure
 
-```
-uwu_shellcode_encoder/
+```text
+projet-shellcode/
+├── uwu_cli.py
 ├── encoder/
-│   └── uwu_encoder.py      # Encodeur Python (hex → UwU)
+│   ├── cli.py
+│   ├── core.py
+│   ├── generator.py
+│   └── commands/
+│       ├── encode.py
+│       └── generate.py
 ├── decoder/
-│   └── uwu_decoder.s       # Décodeur ASM x86_64 GAS (UwU → hex)
-├── keywords.json           # Table de correspondance
-└── README.md
+│   ├── uwu_decoder.s
+│   ├── decoder_2.s
+│   └── decoder_3.s
+├── examples/
+├── keywords.json
+└── tester.c
 ```
 
-## Encodeur (Python)
+## Décodeur ASM (manuel)
 
-Convertit du shellcode hex en format UwU.
+Tu peux toujours utiliser `decoder/uwu_decoder.s` manuellement:
 
 ```bash
-# Depuis argument
-python3 encoder/uwu_encoder.py '\x48\x31\xc0'
-
-# Depuis fichier
-python3 encoder/uwu_encoder.py shellcode.txt
-
-# Vers fichier
-python3 encoder/uwu_encoder.py '\x48\x31\xc0' output.uwu
-```
-
-**Exemple:**
-```
-Input:  \x48\x31\xc0
-Output: ^w^-SwS >w<-OwO ZwZ-UwU
-```
-
-## Décodeur (ASM x86_64 GAS)
-
-Convertit du format UwU en shellcode hex.
-
-### Utilisation
-
-1. **Modifier la chaîne à décoder** dans `decoder/uwu_decoder.s` :
-   ```asm
-   encoded_data:
-       .asciz "^w^-SwS >w<-OwO ZwZ-UwU"
-   ```
-
-2. **Compiler** :
-   ```bash
-   as --64 decoder/uwu_decoder.s -o decoder/uwu_decoder.o
-   ld decoder/uwu_decoder.o -o decoder/uwu_decoder
-   ```
-   
-   Ou avec gcc :
-   ```bash
-   gcc -nostdlib -no-pie decoder/uwu_decoder.s -o decoder/uwu_decoder
-   ```
-
-3. **Exécuter** :
-   ```bash
-   ./decoder/uwu_decoder
-   ```
-
-**Exemple:**
-```
-Input:  ^w^-SwS >w<-OwO ZwZ-UwU
-Output: \x48\x31\xc0
+as --64 decoder/uwu_decoder.s -o decoder/uwu_decoder.o
+ld decoder/uwu_decoder.o -o decoder/uwu_decoder
+./decoder/uwu_decoder
 ```
 
 ## Table de correspondance

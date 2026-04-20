@@ -1,22 +1,26 @@
 .intel_syntax noprefix
 .section .text
 .global decoder_entry
+<<<<<<< HEAD
 
+=======
+# --- PROLOGUE_INSERT ---
+>>>>>>> origin/loup
 decoder_entry:
 
     cld
 
     # ---- polymorphic entry junk ----
-rdtsc
-xor eax, eax
+    rdtsc
+    xor eax, edx
     test al, 1
-    jz  path_A
+    jz path_A
     jmp path_B
 
 path_A:
     xchg r14, r14
     push r14
-    pop  r14
+    pop r14
     jmp init
 
 path_B:
@@ -71,16 +75,15 @@ decode_nibble:
     push rdx
     push rsi
 
-    # -------- safe polymorphic selector --------
+    # runtime variant selection
     push rax
     push rdx
     rdtsc
     and eax, 1
-    mov r8d, eax        # store variant safely
+    mov r8d, eax
     pop rdx
     pop rax
 
-    # -------- load bytes AFTER rdtsc --------
     mov al, [r13]
     mov cl, [r13+1]
     mov dl, [r13+2]
@@ -88,17 +91,17 @@ decode_nibble:
     xor rsi, rsi
 
     test r8d, r8d
-    jz variant_A
-    jmp variant_B
+    jz search_variant_A
+    jmp search_variant_B
 
-# -------- Variant A --------
-variant_A:
+# ================= VARIANT A =================
+search_variant_A:
 .loop_A:
     cmp rsi, 15
-    ja  .nf
+    ja .not_found
 
     lea rdi, [rsi + rsi*2]
-
+    xor r9, r9
     mov bl, [r11 + rdi]
     cmp al, bl
     jne .next_A
@@ -116,34 +119,34 @@ variant_A:
     inc rsi
     jmp .loop_A
 
-# -------- Variant B --------
-variant_B:
+# ================= VARIANT B =================
+search_variant_B:
 .loop_B:
     cmp rsi, 15
-    ja  .nf
+    ja .not_found
 
     mov rdi, rsi
     shl rdi, 1
     add rdi, rsi
-
-    mov bl, [r11 + rdi]
-    cmp al, bl
+    inc r9
+    mov bl, [r11 + rdi + 2]
+    cmp dl, bl
     jne .next_B
     mov bl, [r11 + rdi + 1]
     cmp cl, bl
     jne .next_B
-    mov bl, [r11 + rdi + 2]
-    cmp dl, bl
+    mov bl, [r11 + rdi]
+    cmp al, bl
     jne .next_B
 
     mov eax, esi
     jmp .done
 
 .next_B:
-    inc rsi
+    add rsi, 1
     jmp .loop_B
 
-.nf:
+.not_found:
     xor eax, eax
 
 .done:
@@ -155,77 +158,14 @@ variant_B:
     pop rbx
     ret
 
-# -------- Variant A (lea) --------
-search_A:
-    cmp rsi, 15
-    ja  not_found
-
-    lea rdi, [rsi + rsi*2]
-
-    mov bl, [r11 + rdi]
-    cmp al, bl
-    jne next_A
-    mov bl, [r11 + rdi + 1]
-    cmp cl, bl
-    jne next_A
-    mov bl, [r11 + rdi + 2]
-    cmp dl, bl
-    jne next_A
-
-    mov eax, esi
-    jmp done
-
-next_A:
-    inc rsi
-    jmp search_A
-
-# -------- Variant B (shl+add) ----
-search_B:
-    cmp rsi, 15
-    ja  not_found
-
-    mov rdi, rsi
-    shl rdi, 1
-    add rdi, rsi
-
-    mov bl, [r11 + rdi]
-    cmp al, bl
-    jne next_B
-    mov bl, [r11 + rdi + 1]
-    cmp cl, bl
-    jne next_B
-    mov bl, [r11 + rdi + 2]
-    cmp dl, bl
-    jne next_B
-
-    mov eax, esi
-    jmp done
-
-next_B:
-    add rsi, 1
-    jmp search_B
-
-# -------- Common --------
-not_found:
-    xor eax, eax
-
-done:
-    add r13, 3
-
-    pop rsi
-    pop rdx
-    pop rcx
-    pop rbx
-    ret
-
 # ==================================================
-# DATA (unchanged layout)
+# DATA (inside .text for easy objcopy)
 # ==================================================
 keywords:
     .ascii "UwUOwOTwT>w<^w^QwQPwPRwRSwSVwVXwXYwYZwZNwNMwMLwL"
 
 encoded_data:
-    .asciz "MwM-YwY OwO-NwN QwQ-MwM ^w^-SwS >w<-OwO NwN-TwT YwY-TwT UwU-MwM ^w^-SwS >w<-OwO LwL-LwL ^w^-UwU LwL-MwM ZwZ-RwR ^w^-SwS >w<-OwO ZwZ-UwU LwL-MwM ZwZ-UwU UwU-LwL UwU-QwQ ^w^-SwS >w<-OwO ZwZ-UwU ^w^-SwS >w<-OwO LwL-LwL YwY-UwU >w<-ZwZ UwU-LwL UwU-QwQ MwM-SwS NwN-MwM LwL-LwL LwL-LwL LwL-LwL ^w^-SwS PwP-QwQ PwP-ZwZ PwP-ZwZ PwP-LwL TwT-ZwZ TwT-UwU RwR-RwR PwP-LwL RwR-TwT PwP-ZwZ PwP-^w^ TwT-OwO UwU-XwX"
+    .asciz "__ENCODED_DATA__"
 
 outbuf:
     .space 4096
