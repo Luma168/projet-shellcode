@@ -1,11 +1,7 @@
 .intel_syntax noprefix
 .section .text
 .global decoder_entry
-<<<<<<< HEAD
-
-=======
 # --- PROLOGUE_INSERT ---
->>>>>>> origin/loup
 decoder_entry:
 
     cld
