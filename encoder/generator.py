@@ -114,8 +114,8 @@ outbuf:
 
 def build_asm(encoded, out_path, dryrun=False):
     decoder_folder = Path("decoder")
-    #s_files = list(decoder_folder.glob("*.s"))
-    s_files = [decoder_folder / "decoder_2.s"]  # For now, use the single template file
+    s_files = list(decoder_folder.glob("*.s"))
+    #s_files = [decoder_folder / "decoder_2.s"]  # For now, use the single template file
     if not s_files:
         raise FileNotFoundError("No .s files found in decoder folder!")
 
