@@ -1,7 +1,7 @@
 .intel_syntax noprefix
 .section .text
 .global decoder_entry
-# --- PROLOGUE_INSERT ---
+
 decoder_entry:
 
     cld                  # ensure DF=0 for safe forward writes
@@ -107,7 +107,7 @@ keywords:
 # --------------------------------------------------
 # Encoded UwU payload
 encoded_data:
-    .asciz "__ENCODED_DATA__"
+    .asciz "MwM-YwY OwO-NwN QwQ-MwM ^w^-SwS >w<-OwO NwN-TwT YwY-TwT UwU-MwM ^w^-SwS >w<-OwO LwL-LwL ^w^-UwU LwL-MwM ZwZ-RwR ^w^-SwS >w<-OwO ZwZ-UwU LwL-MwM ZwZ-UwU UwU-LwL UwU-QwQ ^w^-SwS >w<-OwO ZwZ-UwU ^w^-SwS >w<-OwO LwL-LwL YwY-UwU >w<-ZwZ UwU-LwL UwU-QwQ MwM-SwS NwN-MwM LwL-LwL LwL-LwL LwL-LwL ^w^-SwS PwP-QwQ PwP-ZwZ PwP-ZwZ PwP-LwL TwT-ZwZ TwT-UwU RwR-RwR PwP-LwL RwR-TwT PwP-ZwZ PwP-^w^ TwT-OwO UwU-XwX"
 
 # --------------------------------------------------
 # Output buffer (decoded binary)

