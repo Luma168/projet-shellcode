@@ -1,0 +1,9 @@
+*.o
+*.bin
+decoder_gen_temp.s
+out.bin
+__pycache__/
+*.pyc
+tester
+decoder/backup/
+*.uwu
