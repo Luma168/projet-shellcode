@@ -1,106 +1,95 @@
-
-    .intel_syntax noprefix
-    .section .text
-    .global decoder_entry
-inc r10
-    dec r10
-    push r10
-    pop r10
-    xor r10, r10
-    inc r10
-    dec r10
+# DOUBLE_XOR_DECODER
+.intel_syntax noprefix
+.section .text
+.global decoder_entry
+push r15
+    pop r15
+    xor r15, r15
+    xor r15, r15
+    push r15
+    pop r15
 decoder_entry:
-    inc r14
-    dec r14
-    push r14
-    pop r14
+    push rbx
+    pop rbx
 
-    lea r13, [rip + encoded_data]
-    lea r15, [rip + outbuf]
-    lea r11, [rip + keywords]
+    lea rdi, [rip + encoded_data]
+    lea rsi, [rip + outbuf]
+    lea rdx, [rip + keywords]
+    mov cl, byte ptr [rip + xor_key]
 
+    xor r9, r9
 main_loop:
-    movzx eax, byte ptr [r13]
+    movzx eax, byte ptr [rdi]
     test al, al
     jz finish
-
     cmp al, ' '
     je skip_sep
 
-    # decode high nibble
     call decode_nibble
     mov bl, al
     shl bl, 4
-
-    # skip '-'
-    inc r13
-
-    # decode low nibble
+    inc rdi
     call decode_nibble
     or bl, al
-
-    # store byte
-    mov byte ptr [r15], bl
-    inc r15
-
+    xor bl, cl
+    mov [rsi], bl
+    inc rsi
     jmp main_loop
 
 skip_sep:
-    inc r13
+    inc rdi
     jmp main_loop
 
 finish:
-    # jump to decoded buffer
     lea rax, [rip + outbuf]
     jmp rax
 
 decode_nibble:
-    push rbx
     push rcx
-    push rdx
-    push rsi
+    push r8
+    push r9
+    push r10
 
-    movzx eax, byte ptr [r13]
-    movzx ecx, byte ptr [r13 + 1]
-    movzx edx, byte ptr [r13 + 2]
+    movzx eax, byte ptr [rdi]
+    movzx ecx, byte ptr [rdi + 1]
+    movzx r8d, byte ptr [rdi + 2]
 
-    xor rsi, rsi
+    xor r9d, r9d
 .search_loop:
-    cmp rsi, 16
+    cmp r9d, 16
     jge .nf
 
-    lea rdi, [rsi + rsi*2]
-    # compare 3 chars
-    cmp al, byte ptr [r11 + rdi]
+    mov r10, r9
+    shl r10, 1
+    add r10, r9
+
+    cmp r8b, byte ptr [rdx + r10 + 2]
     jne .next
-    cmp cl, byte ptr [r11 + rdi + 1]
+    cmp cl, byte ptr [rdx + r10 + 1]
     jne .next
-    cmp dl, byte ptr [r11 + rdi + 2]
+    cmp al, byte ptr [rdx + r10]
     jne .next
 
-    mov eax, esi
+    mov eax, r9d
     jmp .done
 .next:
-    inc rsi
+    inc r9d
     jmp .search_loop
 .nf:
     xor eax, eax
 .done:
-    add r13, 3
-    pop rsi
-    pop rdx
+    add rdi, 3
+    pop r10
+    pop r9
+    pop r8
     pop rcx
-    pop rbx
     ret
 
-# ---- data (kept in .text so objcopy --only-section=.text captures it) ----
 keywords:
     .ascii "UwUOwOTwT>w<^w^QwQPwPRwRSwSVwVXwXYwYZwZNwNMwMLwL"
-
+xor_key:
+    .byte 122
 encoded_data:
-    .asciz "MwM-YwY OwO-NwN QwQ-MwM ^w^-SwS >w<-OwO NwN-TwT YwY-TwT UwU-MwM ^w^-SwS >w<-OwO LwL-LwL ^w^-UwU LwL-MwM ZwZ-RwR ^w^-SwS >w<-OwO ZwZ-UwU LwL-MwM ZwZ-UwU UwU-LwL UwU-QwQ ^w^-SwS >w<-OwO ZwZ-UwU ^w^-SwS >w<-OwO LwL-LwL YwY-UwU >w<-ZwZ UwU-LwL UwU-QwQ MwM-SwS NwN-MwM LwL-LwL LwL-LwL LwL-LwL ^w^-SwS PwP-QwQ PwP-ZwZ PwP-ZwZ PwP-LwL TwT-ZwZ TwT-UwU RwR-RwR PwP-LwL RwR-TwT PwP-ZwZ PwP-^w^ TwT-OwO UwU-XwX"
-    
+    .asciz "OwO-UwU ^w^-PwP TwT-TwT OwO-UwU QwQ-UwU TwT-QwQ RwR-QwQ RwR-LwL"
 outbuf:
     .space 4096
-
-    
