@@ -6,7 +6,7 @@ _start:
     # call/pop trick - call doit être COURT (< 0x7f offset)
     # donc on met les data JUSTE après
     call entry
-
+# --- PROLOGUE_INSERT ---
 data_start:
 .ascii "UwU"
 .ascii "OwO"
@@ -25,7 +25,7 @@ data_start:
 .ascii "MwM"
 .ascii "LwL"
 encoded_data:
-.ascii "MwM-YwY OwO-NwN QwQ-MwM ^w^-SwS >w<-OwO NwN-TwT YwY-TwT UwU-MwM ^w^-SwS >w<-OwO LwL-LwL ^w^-UwU LwL-MwM ZwZ-RwR ^w^-SwS >w<-OwO ZwZ-UwU LwL-MwM ZwZ-UwU UwU-LwL UwU-QwQ ^w^-SwS >w<-OwO ZwZ-UwU ^w^-SwS >w<-OwO LwL-LwL YwY-UwU >w<-ZwZ UwU-LwL UwU-QwQ MwM-SwS NwN-MwM LwL-LwL LwL-LwL LwL-LwL ^w^-SwS PwP-QwQ PwP-ZwZ PwP-ZwZ PwP-LwL TwT-ZwZ TwT-UwU RwR-RwR PwP-LwL RwR-TwT PwP-ZwZ PwP-^w^ TwT-OwO UwU-XwX"
+.ascii "__ENCODED_DATA__"
 # Sentinelle NON-nulle : 0xFF (ne peut pas apparaître dans les keywords ASCII)
 .byte 0xFF
 
